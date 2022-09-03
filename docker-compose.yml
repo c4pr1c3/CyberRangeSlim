@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  attacker:
+    image: c4pr1c3/crs-base
+    command: sh -c "httpd -DFOREGROUND"
+    networks:
+      - outer
+  gw:
+    image: c4pr1c3/crs-base
+    command: sh -c "iptables -t nat -A POSTROUTING -s ${VICTIM_NET_RANGE} -j MASQUERADE && tcpdump -i inner-0 -n"
+    cap_add:
+      - net_admin
+      - net_raw
+    networks:
+      outer:
+        ipv4_address: "${GW_OUTER_IP}"
+      inner:
+        ipv4_address: "${GW_INNER_IP}"
+        ipv6_address: "2001:3984:3989::3"
+  victim-1:
+    image: c4pr1c3/crs-base
+    command: sh -c "ip r delete default via ${INNER_GW_IP} && ip r add default via ${GW_INNER_IP} && httpd -DFOREGROUND"
+    cap_add:
+      - net_admin
+      - net_raw
+    networks:
+      inner:
+        ipv4_address: "${V1_IP}"
+        ipv6_address: "2001:3984:3989::101"
+  victim-2:
+    image: c4pr1c3/crs-base
+    command: sh -c "ip r delete default via ${INNER_GW_IP} && ip r add default via ${GW_INNER_IP} && httpd -DFOREGROUND"
+    cap_add:
+      - net_admin
+      - net_raw
+    networks:
+      inner:
+        ipv4_address: "${V2_IP}"
+        ipv6_address: "2001:3984:3989::102"
+
+networks:
+  inner:
+    # use the bridge driver, but enable IPv6
+    driver: bridge
+    internal: false
+    # ref: https://docs.docker.com/engine/reference/commandline/network_create/#bridge-driver-options
+    driver_opts:
+        com.docker.network.enable_ipv6: "true"
+        com.docker.network.bride.name:  "inner"
+        com.docker.network.container_iface_prefix: "inner-"
+    ipam:
+      driver: default
+      config:
+        - subnet: ${VICTIM_NET_RANGE}
+          gateway: ${INNER_GW_IP}
+        - subnet: "2001:3984:3989::/64"
+          gateway: "2001:3984:3989::1"
+  outer:
+    driver: bridge
+    driver_opts:
+        com.docker.network.enable_ipv6: "false"
+        com.docker.network.bride.name:  "outer"
+        com.docker.network.container_iface_prefix: "outer-"
+    ipam:
+      driver: default
+      config:
+        - subnet: ${OUTER_NET_RANGE}
+          gateway: ${OUTER_GW_IP}

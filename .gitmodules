@@ -1,0 +1,3 @@
+[submodule "docker-network-graph"]
+	path = docker-network-graph
+	url = https://github.com/LeoVerto/docker-network-graph.git

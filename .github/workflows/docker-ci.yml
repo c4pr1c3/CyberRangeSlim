@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: CRS Build & TestRun
 on: [push, pull_request]
 jobs:
   build:

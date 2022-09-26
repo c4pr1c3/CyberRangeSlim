@@ -47,7 +47,7 @@ networks:
     # ref: https://docs.docker.com/engine/reference/commandline/network_create/#bridge-driver-options
     driver_opts:
         com.docker.network.enable_ipv6: "true"
-        com.docker.network.bride.name:  "inner"
+        com.docker.network.bridge.name:  "inner"
         com.docker.network.container_iface_prefix: "inner-"
     ipam:
       driver: default
@@ -60,7 +60,7 @@ networks:
     driver: bridge
     driver_opts:
         com.docker.network.enable_ipv6: "false"
-        com.docker.network.bride.name:  "outer"
+        com.docker.network.bridge.name:  "outer"
         com.docker.network.container_iface_prefix: "outer-"
     ipam:
       driver: default

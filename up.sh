@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker-compose --env-file crs.env up -d
+docker compose --env-file crs.env up -d

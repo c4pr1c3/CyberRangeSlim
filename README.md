@@ -30,6 +30,31 @@ bash up.sh
 bash down.sh
 ```
 
+## 受害者子网扩容（32节点，3个独立子网）
+
+本项目提供 3 个新的受害者子网 `victim-net-1/2/3`（仅 IPv4），每个子网可以按需伸缩到 10 个容器，总体新增 30 个节点，使受害者总数达到 32（含原有 2 个）。
+
+扩容与验证示例：
+
+```bash
+# 构建并启动（本地构建最小镜像，避免外部拉取）
+docker compose --env-file crs.env up -d --build 
+
+# 按子网进行伸缩，每网 10 个
+docker compose --env-file crs.env up -d \
+  --scale victim-net-1=10 \
+  --scale victim-net-2=10 \
+  --scale victim-net-3=10
+
+# 运行内置测试（跨子网互通、到 outer 可达、gw 抓包日志）
+bash test.sh
+```
+
+设计说明：
+- 新子网容器默认路由被设置为指向 `gw` 在该子网的接口 IP，由 `gw` 进行跨子网转发与到 `outer` 的出站 NAT（MASQUERADE）。
+- `gw` 持续抓取 `inner` 与 3 个新子网的接口（`inner-0`、`v1-0`、`v2-0`、`v3-0`），可通过 `docker compose logs gw` 查看。
+
+
 ## 演示
 
 详见 [Github Actions](https://github.com/c4pr1c3/CyberRangeSlim/actions) 的详细构建记录里的 `Test Run` 一节输出日志信息。
